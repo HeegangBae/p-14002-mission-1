@@ -4,32 +4,29 @@ import com.back.domain.member.member.service.MemberService
 import com.back.domain.post.post.service.PostService
 import com.back.global.app.CustomConfigProperties
 import com.back.global.app.CustomConfigProperties.NotProdMember
-import lombok.RequiredArgsConstructor
+import com.back.standard.extensions.getOrThrow
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.ApplicationArguments
 import org.springframework.boot.ApplicationRunner
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Lazy
 import org.springframework.context.annotation.Profile
 import org.springframework.transaction.annotation.Transactional
-import java.util.function.Consumer
 
 @Profile("!prod")
 @Configuration
-@RequiredArgsConstructor
 class NotProdInitData(
     private val postService: PostService,
     private val memberService: MemberService,
     private val customConfigProperties: CustomConfigProperties,
 ) {
-    @Autowired
     @Lazy
+    @Autowired
     private lateinit var self: NotProdInitData
 
     @Bean
     fun notProdInitDataApplicationRunner(): ApplicationRunner {
-        return ApplicationRunner { args: ApplicationArguments ->
+        return ApplicationRunner {
             self.work1()
             self.work2()
         }
@@ -54,25 +51,25 @@ class NotProdInitData(
         val memberUser3 = memberService.join("user3", "1234", "유저3")
         memberUser3.modifyApiKey(memberUser3.username)
 
-        customConfigProperties.notProdMembers.forEach(Consumer { notProdMember: NotProdMember ->
+        // 코틀린 람다 스타일로 변경
+        customConfigProperties.notProdMembers.forEach { notProdMember ->
             val socialMember = memberService.join(
                 notProdMember.username,
                 null,
                 notProdMember.nickname,
                 notProdMember.profileImgUrl
             )
-
             socialMember.modifyApiKey(notProdMember.apiKey)
-        })
+        }
     }
 
     @Transactional
     fun work2() {
         if (postService.count() > 0) return
 
-        val memberUser1 = memberService.findByUsername("user1").get()
-        val memberUser2 = memberService.findByUsername("user2").get()
-        val memberUser3 = memberService.findByUsername("user3").get()
+        val memberUser1 = memberService.findByUsername("user1").getOrThrow()
+        val memberUser2 = memberService.findByUsername("user2").getOrThrow()
+        val memberUser3 = memberService.findByUsername("user3").getOrThrow()
 
         val post1 = postService.write(memberUser1, "제목 1", "내용 1")
         val post2 = postService.write(memberUser1, "제목 2", "내용 2")

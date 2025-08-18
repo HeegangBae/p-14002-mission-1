@@ -14,15 +14,15 @@ class Member(
     var password: String? = null,
     var nickname: String,
     @field:Column(unique = true) var apiKey: String,
-    var profileImgUrl: String?
+    var profileImgUrl: String? = null,
 ) : BaseEntity(id) {
+    // JPA와 상관없는 객체를 만들 때 사용, SecurityUser로부터 정보를 받아와서 생성할 때 사용
     constructor(id: Int, username: String, nickname: String) : this(
         id,
         username,
         null,
         nickname,
-        "",
-        null
+        ""
     )
 
     constructor(username: String, password: String?, nickname: String, profileImgUrl: String?) : this(
@@ -30,7 +30,7 @@ class Member(
         username,
         password,
         nickname,
-        UUID.randomUUID().toString(),
+        UUID.randomUUID().toString(), // apiKey는 UUID로 생성
         profileImgUrl
     )
 
@@ -54,7 +54,7 @@ class Member(
 
     val authoritiesAsStringList: List<String>
         get() {
-            val authorities: MutableList<String> = ArrayList()
+            val authorities = mutableListOf<String>()
 
             if (isAdmin) authorities.add("ROLE_ADMIN")
 
@@ -62,10 +62,7 @@ class Member(
         }
 
     val authorities: Collection<GrantedAuthority>
-        get() = authoritiesAsStringList
-            .stream()
-            .map { SimpleGrantedAuthority(it) }
-            .toList()
+        get() = authoritiesAsStringList.map { SimpleGrantedAuthority(it) }
 
     fun modify(nickname: String, profileImgUrl: String?) {
         this.nickname = nickname

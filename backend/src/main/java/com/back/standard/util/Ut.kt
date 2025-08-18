@@ -13,7 +13,7 @@ object Ut {
             val issuedAt = Date()
             val expiration = Date(issuedAt.time + 1000L * expireSeconds)
 
-            val secretKey: Key = Keys.hmacShaKeyFor(secret.toByteArray())
+            val secretKey = Keys.hmacShaKeyFor(secret.toByteArray())
 
             val jwt = Jwts.builder()
                 .claims(body)

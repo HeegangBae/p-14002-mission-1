@@ -13,7 +13,7 @@ import java.util.*
 
 @Entity
 class Post(
-    @field:ManyToOne var author: Member,
+    @field:ManyToOne val author: Member,
     var title: String,
     var content: String
 ) : BaseEntity() {
@@ -37,10 +37,7 @@ class Post(
     }
 
     fun findCommentById(id: Int): Optional<PostComment> {
-        return comments
-            .stream()
-            .filter { comment: PostComment -> comment.id == id }
-            .findFirst()
+        return Optional.ofNullable(comments.find { it.id == id })
     }
 
     fun deleteComment(postComment: PostComment): Boolean {

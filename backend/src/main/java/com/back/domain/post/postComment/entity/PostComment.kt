@@ -6,13 +6,11 @@ import com.back.global.exception.ServiceException
 import com.back.global.jpa.entity.BaseEntity
 import jakarta.persistence.Entity
 import jakarta.persistence.ManyToOne
-import lombok.NoArgsConstructor
 
 @Entity
-@NoArgsConstructor
 class PostComment(
-    @field:ManyToOne var author: Member,
-    @field:ManyToOne var post: Post,
+    @field:ManyToOne val author: Member,
+    @field:ManyToOne val post: Post,
     var content: String,
 ) : BaseEntity() {
     fun modify(content: String) {

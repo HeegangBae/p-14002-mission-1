@@ -12,14 +12,12 @@ import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.validation.Valid
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.Size
-import lombok.RequiredArgsConstructor
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.bind.annotation.*
-import java.util.function.Supplier
+
 
 @RestController
 @RequestMapping("/api/v1/members")
-@RequiredArgsConstructor
 @Tag(name = "ApiV1MemberController", description = "API 회원 컨트롤러")
 @SecurityRequirement(name = "bearerAuth")
 class ApiV1MemberController(
@@ -27,50 +25,55 @@ class ApiV1MemberController(
     private val rq: Rq
 ) {
     data class MemberJoinReqBody(
-        val username: @NotBlank @Size(min = 2, max = 30) String?,
-        val password: @NotBlank @Size(min = 2, max = 30) String?,
-        val nickname: @NotBlank @Size(min = 2, max = 30) String?
+        @field:NotBlank @field:Size(min = 2, max = 30)
+        val username: String,
+        @field:NotBlank @field:Size(min = 2, max = 30)
+        val password: String,
+        @field:NotBlank @field:Size(min = 2, max = 30)
+        val nickname: String,
     )
 
     @PostMapping
     @Transactional
     @Operation(summary = "가입")
     fun join(
-        @RequestBody reqBody: @Valid MemberJoinReqBody
-    ): RsData<MemberDto?> {
+        @RequestBody @Valid reqBody: MemberJoinReqBody
+    ): RsData<MemberDto> {
         val member = memberService.join(
-            reqBody.username!!,
+            reqBody.username,
             reqBody.password,
-            reqBody.nickname!!
+            reqBody.nickname
         )
 
         return RsData(
             "201-1",
-            // 문자열 템플릿으로 수정
             "${member.name}님 환영합니다. 회원가입이 완료되었습니다.",
             MemberDto(member)
         )
     }
 
+
     data class MemberLoginReqBody(
-        val username: @NotBlank @Size(min = 2, max = 30) String?,
-        val password: @NotBlank @Size(min = 2, max = 30) String?
+        @field:NotBlank @field:Size(min = 2, max = 30)
+        val username: String,
+        @field:NotBlank @field:Size(min = 2, max = 30)
+        val password: String,
     )
 
     data class MemberLoginResBody(
-        val item: MemberDto?,
-        val apiKey: String?,
-        val accessToken: String?
+        val item: MemberDto,
+        val apiKey: String,
+        val accessToken: String
     )
 
     @PostMapping("/login")
     @Transactional(readOnly = true)
     @Operation(summary = "로그인")
     fun login(
-        @RequestBody reqBody: @Valid MemberLoginReqBody
-    ): RsData<MemberLoginResBody?> {
-        val member = memberService.findByUsername(reqBody.username!!)
-            .orElseThrow<ServiceException?>(Supplier { ServiceException("401-1", "존재하지 않는 아이디입니다.") })
+        @RequestBody @Valid reqBody: MemberLoginReqBody
+    ): RsData<MemberLoginResBody> {
+        val member = memberService.findByUsername(reqBody.username)
+            ?: throw ServiceException("401-1", "존재하지 않는 아이디입니다.")
 
         memberService.checkPassword(
             member,
@@ -84,7 +87,6 @@ class ApiV1MemberController(
 
         return RsData(
             "200-1",
-            // 문자열 템플릿으로 수정
             "${member.name}님 환영합니다.",
             MemberLoginResBody(
                 MemberDto(member),
@@ -94,9 +96,10 @@ class ApiV1MemberController(
         )
     }
 
+
     @DeleteMapping("/logout")
     @Operation(summary = "로그아웃")
-    fun logout(): RsData<Void?> {
+    fun logout(): RsData<Void> {
         rq.deleteCookie("apiKey")
         rq.deleteCookie("accessToken")
 
@@ -105,6 +108,7 @@ class ApiV1MemberController(
             "로그아웃 되었습니다."
         )
     }
+
 
     @GetMapping("/me")
     @Transactional(readOnly = true)
